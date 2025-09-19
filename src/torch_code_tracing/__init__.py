@@ -2,6 +2,7 @@ from __future__ import annotations
 
 __all__ = ["TracingMode"]
 
+from collections.abc import Sequence
 import dataclasses
 import inspect
 
@@ -116,9 +117,12 @@ class TracingMode(TorchDispatchMode):
         op_str = _op_to_str(func, *args, **kwargs)
 
         result = func(*args, **kwargs)
-        output_str = ", ".join(_arg_to_str(arg) for arg in result)
-        if isinstance(result, tuple):
+
+        if isinstance(result, Sequence):
+            output_str = ", ".join(_arg_to_str(arg) for arg in result)
             output_str = f"({output_str})"
+        else:
+            output_str = _arg_to_str(result)
 
         self._add_trace(Trace(f"{op_str} -> {output_str}", stack))
 
