@@ -87,9 +87,13 @@ class TracingMode(TorchDispatchMode):
             frame for frame in stack if "site-packages/torch" not in frame.filename
         ]
         op_str = _op_to_str(func, *args, **kwargs)
-        self._add_trace(Trace(op_str, stack))
 
         result = func(*args, **kwargs)
+        output_str = ", ".join(_arg_to_str(arg) for arg in result)
+        if isinstance(result, tuple):
+            output_str = f"({output_str})"
+
+        self._add_trace(Trace(f"{op_str} -> {output_str}", stack))
 
         return result
 
