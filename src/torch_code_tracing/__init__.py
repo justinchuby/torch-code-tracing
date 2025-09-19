@@ -164,13 +164,14 @@ class TracingMode(TorchDispatchMode):
             # Find the common prefix between the current stack and the trace stack
             prev_trace = self.traces[index - 1]
             for f1, f2 in zip(trace.stack, prev_trace.stack):
-                if f1.filename == f2.filename and f1.lineno == f2.lineno:
+                if (
+                    f1.filename == f2.filename
+                    and f1.lineno == f2.lineno
+                    and f1.positions == f2.positions
+                ):
                     common_length += 1
                 else:
                     break
-            if common_length == len(trace.stack):
-                # Keep at least one frame to show the context of the operator
-                common_length -= 1
             relevant_stack = trace.stack[common_length:]
         else:
             relevant_stack = trace.stack
@@ -203,14 +204,26 @@ class TracingMode(TorchDispatchMode):
 
             if i == len(relevant_stack) - 1:
                 # Last frame. Show the operator call
-                op_str = f"{trace.op_str};"
+                op_str = f"# {trace.op_str};"
             else:
                 op_str = "⬇️"
 
             if color:
-                line = f"{'│ ' * indent}{src_line}  {_GRAY}# {frame.filename}:{frame.lineno} in {frame.function}: {op_str}{_RESET}"
+                lines.append(
+                    f"{'│ ' * indent}{src_line}  {_GRAY}# {frame.filename}:{frame.lineno} in {frame.function}:{_RESET}"
+                )
+                lines.append(f"{'│ ' * (indent + 1)}{_GRAY}{op_str}{_RESET}")
             else:
-                line = f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
-            lines.append(line)
+                lines.append(
+                    f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}:"
+                )
+                lines.append(f"{'│ ' * (indent + 1)}{op_str}")
+
+        if common_length == len(trace.stack):
+            # The call shares the same stack as the previous call
+            if color:
+                lines.append(f"{'│ ' * common_length}{_GRAY}# {trace.op_str}{_RESET}")
+            else:
+                lines.append(f"{'│ ' * common_length}# {trace.op_str}")
 
         return "\n".join(lines)
