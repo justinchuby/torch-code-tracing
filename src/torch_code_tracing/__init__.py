@@ -152,15 +152,13 @@ class TracingMode(TorchDispatchMode):
     def _add_trace(self, trace: Trace) -> None:
         self.traces.append(trace)
         if self._verbose:
-            self._print_trace(-1, self._succinct)
+            self._print_trace(-1, succinct=self._succinct)
 
     def _print_trace(self, index: int, succinct: bool) -> None:
         trace_str = self._trace_str(index, color=self._color, succinct=succinct)
         print(trace_str)
 
-    def _trace_str(
-        self, index: int, color: bool = False, succinct: bool = False
-    ) -> str:
+    def _trace_str(self, index: int, color: bool, succinct: bool) -> str:
         if not self.traces:
             return "<no traces>"
 
@@ -178,7 +176,7 @@ class TracingMode(TorchDispatchMode):
                 if (
                     f1.filename == f2.filename
                     and f1.lineno == f2.lineno
-                    and (f1.positions == f2.positions or not succinct)
+                    and (f1.positions == f2.positions or succinct)
                 ):
                     common_length += 1
                 else:
