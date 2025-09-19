@@ -11,6 +11,10 @@ from torch.utils._python_dispatch import TorchDispatchMode
 from torch.utils._pytree import tree_map
 
 
+_GRAY = "\033[2m"
+_RESET = "\033[0m"
+
+
 def _stringify_shape(shape) -> str:
     return f"[{', '.join([str(x) for x in shape])}]"
 
@@ -37,7 +41,9 @@ def _op_to_str(op, *args, **kwargs) -> str:
     args_str = ", ".join(_arg_to_str(arg) for arg in args)
 
     if kwargs:
-        kwargs_str = ", " + ", ".join(f"{k}={_arg_to_str(v)}" for k, v in kwargs.items())
+        kwargs_str = ", " + ", ".join(
+            f"{k}={_arg_to_str(v)}" for k, v in kwargs.items()
+        )
     else:
         kwargs_str = ""
 
@@ -49,7 +55,7 @@ def _op_to_str(op, *args, **kwargs) -> str:
         op_name = str(op)
 
     if op_name.startswith("aten::"):
-        op_name = op_name[len("aten::"):]
+        op_name = op_name[len("aten::") :]
 
     return f"{op_name}({args_str}{kwargs_str})"
 
@@ -73,7 +79,9 @@ class TracingMode(TorchDispatchMode):
 
         stack = reversed(inspect.stack()[1:])  # Exclude the current frame
         # Filter out frames from PyTorch internals
-        stack = [frame for frame in stack if "site-packages/torch" not in frame.filename]
+        stack = [
+            frame for frame in stack if "site-packages/torch" not in frame.filename
+        ]
         op_str = _op_to_str(func, *args, **kwargs)
         self._add_trace(Trace(op_str, stack))
 
@@ -81,25 +89,40 @@ class TracingMode(TorchDispatchMode):
 
         return result
 
+    def print(self) -> None:
+        for i in range(len(self.traces)):
+            self._print_trace(i)
+
     def _add_trace(self, trace: Trace) -> None:
         self.traces.append(trace)
         if self._verbose:
-            self._print_last_trace()
+            self._print_trace(-1)
 
-    def _print_last_trace(self) -> None:
-        print(self._last_trace_str())
+    def _print_trace(self, index: int) -> None:
+        trace_str = self._trace_str(index)
+        # Apply color formatting to the comment portion (after #)
+        formatted_str = (
+            trace_str.replace("  # ", f"  {_GRAY}# ").replace("\n", "{_RESET}\n")
+            + _RESET
+        )
+        print(formatted_str)
 
-    def _last_trace_str(self) -> str:
+    def _trace_str(self, index: int) -> str:
         if not self.traces:
-            return ""
+            return "<no traces>"
 
-        trace = self.traces[-1]
+        if index < 0:
+            index = len(self.traces) + index
+        if index >= len(self.traces):
+            raise IndexError("Trace index out of range")
+
+        trace = self.traces[index]
 
         common_length = 0
 
-        if len(self.traces) > 1:
+        if index > 1:
             # Find the common prefix between the current stack and the trace stack
-            prev_trace = self.traces[-2]
+            prev_trace = self.traces[index - 1]
             for f1, f2 in zip(trace.stack, prev_trace.stack):
                 if f1.filename == f2.filename and f1.lineno == f2.lineno:
                     common_length += 1
@@ -125,6 +148,8 @@ class TracingMode(TorchDispatchMode):
             else:
                 op_str = "⬇️"
 
-            lines.append(f'{"| " * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}')
+            lines.append(
+                f"{'| ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
+            )
 
         return "\n".join(lines)
