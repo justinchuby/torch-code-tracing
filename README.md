@@ -13,7 +13,7 @@ pip install git+https://github.com/justinchuby/torch-code-tracing.git
 ```py
 from torch_code_tracing import TracingMode
 
-with TracingMode():
+with TracingMode(succinct=True, color=True):
     out = model(*args, **kwargs)
 ```
 
