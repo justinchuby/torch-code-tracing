@@ -144,12 +144,7 @@ class TracingMode(TorchDispatchMode):
 
     def _print_trace(self, index: int) -> None:
         trace_str = self._trace_str(index, color=True)
-        # Apply color formatting to the comment portion (after #)
-        formatted_str = (
-            trace_str.replace("  # ", f"  {_GRAY}# ").replace("\n", f"{_RESET}\n")
-            + _RESET
-        )
-        print(formatted_str)
+        print(trace_str)
 
     def _trace_str(self, index: int, color: bool = False) -> str:
         if not self.traces:
