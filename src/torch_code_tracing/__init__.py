@@ -94,17 +94,26 @@ class Trace:
 
 
 class TracingMode(TorchDispatchMode):
-    def __init__(self, *args, quiet: bool = False, color: bool = True, **kwargs):
+    def __init__(
+        self,
+        *args,
+        quiet: bool = False,
+        succinct: bool = False,
+        color: bool = True,
+        **kwargs,
+    ):
         """A TorchDispatchMode that prints code traces of all tensor operations.
 
         Args:
             quiet: If True, only store the traces and do not print them immediately.
+            succinct: If True, collapse common source line between consecutive traces.
             color: If True, use ANSI color codes in the printed output.
         """
         super().__init__(*args, **kwargs)
         self.traces: list[Trace] = []
         self._verbose = not quiet
         self._color = color
+        self._succinct = succinct
 
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
         if kwargs is None:
@@ -128,28 +137,30 @@ class TracingMode(TorchDispatchMode):
 
         return result
 
-    def print(self) -> None:
+    def print(self, *, succinct: bool = False) -> None:
         """Print the formatted trace to stdout."""
         for i in range(len(self.traces)):
-            self._print_trace(i)
+            self._print_trace(i, succinct=succinct)
 
-    def format(self, color: bool = False) -> str:
+    def format(self, *, color: bool = False, succinct: bool = False) -> str:
         """Return the formatted trace as a string."""
         lines = []
         for i in range(len(self.traces)):
-            lines.append(self._trace_str(i, color=color))
+            lines.append(self._trace_str(i, color=color, succinct=succinct))
         return "\n".join(lines)
 
     def _add_trace(self, trace: Trace) -> None:
         self.traces.append(trace)
         if self._verbose:
-            self._print_trace(-1)
+            self._print_trace(-1, self._succinct)
 
-    def _print_trace(self, index: int) -> None:
-        trace_str = self._trace_str(index, color=self._color)
+    def _print_trace(self, index: int, succinct: bool) -> None:
+        trace_str = self._trace_str(index, color=self._color, succinct=succinct)
         print(trace_str)
 
-    def _trace_str(self, index: int, color: bool = False) -> str:
+    def _trace_str(
+        self, index: int, color: bool = False, succinct: bool = False
+    ) -> str:
         if not self.traces:
             return "<no traces>"
 
@@ -167,7 +178,7 @@ class TracingMode(TorchDispatchMode):
                 if (
                     f1.filename == f2.filename
                     and f1.lineno == f2.lineno
-                    and f1.positions == f2.positions
+                    and (f1.positions == f2.positions or not succinct)
                 ):
                     common_length += 1
                 else:
