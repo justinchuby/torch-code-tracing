@@ -146,7 +146,7 @@ class TracingMode(TorchDispatchMode):
                 op_str = "⬇️"
 
             lines.append(
-                f"{'| ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
+                f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
             )
 
         return "\n".join(lines)
