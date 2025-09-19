@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __all__ = ["TracingMode"]
 
-from collections.abc import Sequence
 import dataclasses
 import inspect
 
@@ -95,15 +94,17 @@ class Trace:
 
 
 class TracingMode(TorchDispatchMode):
-    def __init__(self, *args, quiet: bool = False, **kwargs):
+    def __init__(self, *args, quiet: bool = False, color: bool = True, **kwargs):
         """A TorchDispatchMode that prints code traces of all tensor operations.
 
         Args:
             quiet: If True, only store the traces and do not print them immediately.
+            color: If True, use ANSI color codes in the printed output.
         """
         super().__init__(*args, **kwargs)
         self.traces: list[Trace] = []
         self._verbose = not quiet
+        self._color = color
 
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
         if kwargs is None:
@@ -182,7 +183,7 @@ class TracingMode(TorchDispatchMode):
 
             src_line = frame.code_context[0] if frame.code_context else ""
 
-            if color and src_line:
+            if self._color and color and src_line:
                 if (positions := frame.positions) is not None:
                     if (
                         positions.lineno == positions.end_lineno == frame.lineno
@@ -208,7 +209,7 @@ class TracingMode(TorchDispatchMode):
             else:
                 op_str = "⬇️"
 
-            if color:
+            if self._color and color:
                 line = f"{'│ ' * indent}{src_line}  {_GRAY}# {frame.filename}:{frame.lineno} in {frame.function}: {op_str}{_RESET}"
             else:
                 line = f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
