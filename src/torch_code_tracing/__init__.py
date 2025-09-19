@@ -6,12 +6,39 @@ import dataclasses
 import inspect
 
 import torch
-from torch.utils._dtype_abbrs import dtype_abbrs
 from torch.utils._python_dispatch import TorchDispatchMode
 from torch.utils._pytree import tree_map
 
 _GRAY = "\033[2m"
 _RESET = "\033[0m"
+
+
+DTYPE_ABBRS = {
+    torch.bfloat16: "bf16",
+    torch.float64: "f64",
+    torch.float32: "f32",
+    torch.float16: "f16",
+    torch.float8_e4m3fn: "f8e4m3fn",
+    torch.float8_e5m2: "f8e5m2",
+    torch.float8_e4m3fnuz: "f8e4m3fnuz",
+    torch.float8_e5m2fnuz: "f8e5m2fnuz",
+    torch.float8_e8m0fnu: "f8e8m0fnu",
+    torch.float4_e2m1fn_x2: "f4e2m1fnx2",
+    torch.complex32: "c32",
+    torch.complex64: "c64",
+    torch.complex128: "c128",
+    torch.int8: "i8",
+    torch.int16: "i16",
+    torch.int32: "i32",
+    torch.int64: "i64",
+    torch.bool: "b8",
+    torch.uint8: "u8",
+    torch.uint16: "u16",
+    torch.uint32: "u32",
+    torch.uint64: "u64",
+    torch.bits16: "b16",
+    torch.bits1x8: "b1x8",
+}
 
 
 def _stringify_shape(shape) -> str:
@@ -21,7 +48,7 @@ def _stringify_shape(shape) -> str:
 def _tensor_debug_string(tensor) -> str:
     """Convert tensor to debug string representation."""
     if isinstance(tensor, torch.Tensor):
-        return f"{dtype_abbrs[tensor.dtype]}{_stringify_shape(tensor.shape)}"
+        return f"{DTYPE_ABBRS[tensor.dtype]}{_stringify_shape(tensor.shape)}"
     else:
         raise TypeError(f"Unsupported tensor type: {type(tensor)}")
 
