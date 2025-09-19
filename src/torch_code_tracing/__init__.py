@@ -102,7 +102,7 @@ class TracingMode(TorchDispatchMode):
         trace_str = self._trace_str(index)
         # Apply color formatting to the comment portion (after #)
         formatted_str = (
-            trace_str.replace("  # ", f"  {_GRAY}# ").replace("\n", "{_RESET}\n")
+            trace_str.replace("  # ", f"  {_GRAY}# ").replace("\n", f"{_RESET}\n")
             + _RESET
         )
         print(formatted_str)
