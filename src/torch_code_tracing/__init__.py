@@ -143,7 +143,7 @@ class TracingMode(TorchDispatchMode):
             self._print_trace(-1)
 
     def _print_trace(self, index: int) -> None:
-        trace_str = self._trace_str(index, color=True)
+        trace_str = self._trace_str(index, color=self._color)
         print(trace_str)
 
     def _trace_str(self, index: int, color: bool = False) -> str:
@@ -178,7 +178,7 @@ class TracingMode(TorchDispatchMode):
 
             src_line = frame.code_context[0] if frame.code_context else ""
 
-            if self._color and color and src_line:
+            if color and src_line:
                 if (positions := frame.positions) is not None:
                     if (
                         positions.lineno == positions.end_lineno == frame.lineno
@@ -204,7 +204,7 @@ class TracingMode(TorchDispatchMode):
             else:
                 op_str = "⬇️"
 
-            if self._color and color:
+            if color:
                 line = f"{'│ ' * indent}{src_line}  {_GRAY}# {frame.filename}:{frame.lineno} in {frame.function}: {op_str}{_RESET}"
             else:
                 line = f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
