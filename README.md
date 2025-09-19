@@ -2,6 +2,14 @@
 
 Code trace your PyTorch model
 
+## Install
+
+```sh
+pip install git+https://github.com/justinchuby/torch-code-tracing.git
+```
+
+## Usage
+
 ```py
 from torch_code_tracing import TracingMode
 
