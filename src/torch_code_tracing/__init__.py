@@ -67,10 +67,15 @@ class Trace:
 
 
 class TracingMode(TorchDispatchMode):
-    def __init__(self, *args, verbose: bool = True, **kwargs):
+    def __init__(self, *args, quiet: bool = False, **kwargs):
+        """A TorchDispatchMode that prints code traces of all tensor operations.
+
+        Args:
+            quiet: If True, only store the traces and do not print them immediately.
+        """
         super().__init__(*args, **kwargs)
         self.traces: list[Trace] = []
-        self._verbose = verbose
+        self._verbose = not quiet
 
     def __torch_dispatch__(self, func, types, args=(), kwargs=None):
         if kwargs is None:
@@ -89,8 +94,16 @@ class TracingMode(TorchDispatchMode):
         return result
 
     def print(self) -> None:
+        """Print the formatted trace to stdout."""
         for i in range(len(self.traces)):
             self._print_trace(i)
+
+    def format(self, color: bool = False) -> str:
+        """Return the formatted trace as a string."""
+        lines = []
+        for i in range(len(self.traces)):
+            lines.append(self._trace_str(i, color=color))
+        return "\n".join(lines)
 
     def _add_trace(self, trace: Trace) -> None:
         self.traces.append(trace)
@@ -98,7 +111,7 @@ class TracingMode(TorchDispatchMode):
             self._print_trace(-1)
 
     def _print_trace(self, index: int) -> None:
-        trace_str = self._trace_str(index)
+        trace_str = self._trace_str(index, color=True)
         # Apply color formatting to the comment portion (after #)
         formatted_str = (
             trace_str.replace("  # ", f"  {_GRAY}# ").replace("\n", f"{_RESET}\n")
@@ -106,7 +119,7 @@ class TracingMode(TorchDispatchMode):
         )
         print(formatted_str)
 
-    def _trace_str(self, index: int) -> str:
+    def _trace_str(self, index: int, color: bool = False) -> str:
         if not self.traces:
             return "<no traces>"
 
@@ -135,9 +148,28 @@ class TracingMode(TorchDispatchMode):
         lines = []
         for i, frame in enumerate(relevant_stack):
             indent = i + common_length
-            src_line = frame.code_context[0].strip() if frame.code_context else ""
-            if len(src_line) > 40:
-                src_line = f"{src_line[:40]} [...]"
+
+            src_line = frame.code_context[0] if frame.code_context else ""
+
+            if color and src_line:
+                if (positions := frame.positions) is not None:
+                    if (
+                        positions.lineno == positions.end_lineno == frame.lineno
+                        and positions.col_offset is not None
+                        and positions.end_col_offset is not None
+                    ):
+                        # Highlight the exact column if available
+                        start_col = positions.col_offset
+                        end_col = positions.end_col_offset
+                        src_line = (
+                            src_line[:start_col]
+                            + "\033[36m"  # Cyan text
+                            + src_line[start_col:end_col]
+                            + _RESET
+                            + src_line[end_col:]
+                        )
+
+            src_line = src_line.strip()
 
             if i == len(relevant_stack) - 1:
                 # Last frame. Show the operator call
@@ -145,8 +177,10 @@ class TracingMode(TorchDispatchMode):
             else:
                 op_str = "⬇️"
 
-            lines.append(
-                f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
-            )
+            if color:
+                line = f"{'│ ' * indent}{src_line}  {_GRAY}# {frame.filename}:{frame.lineno} in {frame.function}: {op_str}{_RESET}"
+            else:
+                line = f"{'│ ' * indent}{src_line}  # {frame.filename}:{frame.lineno} in {frame.function}: {op_str}"
+            lines.append(line)
 
         return "\n".join(lines)

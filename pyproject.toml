@@ -11,6 +11,7 @@ authors = [
 
 ]
 readme = "README.md"
+requires-python = ">=3.10"
 license = "MIT"
 dependencies = [
 	"torch",
@@ -18,3 +19,7 @@ dependencies = [
 
 [tool.pytest.ini_options]
 addopts = "--tb=short --color=yes"
+
+[project.urls]
+Issues = "https://github.com/justinchuby/torch-code-tracing/issues"
+Repository = "https://github.com/justinchuby/torch-code-tracing"
