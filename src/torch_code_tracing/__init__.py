@@ -10,7 +10,6 @@ from torch.utils._dtype_abbrs import dtype_abbrs
 from torch.utils._python_dispatch import TorchDispatchMode
 from torch.utils._pytree import tree_map
 
-
 _GRAY = "\033[2m"
 _RESET = "\033[0m"
 
@@ -115,7 +114,10 @@ class TracingMode(TorchDispatchMode):
 
         common_length = 0
 
-        if len(self.traces) > 1:
+        if index < 0:
+            index = index + len(self.traces)
+
+        if index > 0:
             # Find the common prefix between the current stack and the trace stack
             prev_trace = self.traces[index - 1]
             for f1, f2 in zip(trace.stack, prev_trace.stack):
