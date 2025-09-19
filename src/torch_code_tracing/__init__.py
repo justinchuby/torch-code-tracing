@@ -119,7 +119,10 @@ class TracingMode(TorchDispatchMode):
 
         result = func(*args, **kwargs)
 
-        output_str = _arg_to_str(result)
+        if isinstance(result, (list, tuple)):
+            output_str = "(" + ", ".join(_arg_to_str(r) for r in result) + ")"
+        else:
+            output_str = _arg_to_str(result)
 
         self._add_trace(Trace(f"{op_str} -> {output_str}", stack))
 
