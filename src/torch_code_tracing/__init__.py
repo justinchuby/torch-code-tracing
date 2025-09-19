@@ -119,8 +119,6 @@ class TracingMode(TorchDispatchMode):
         result = func(*args, **kwargs)
 
         output_str = _arg_to_str(result)
-        if isinstance(result, Sequence):
-            output_str = f"({output_str})"
 
         self._add_trace(Trace(f"{op_str} -> {output_str}", stack))
 
