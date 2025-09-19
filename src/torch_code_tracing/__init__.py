@@ -111,16 +111,11 @@ class TracingMode(TorchDispatchMode):
         if not self.traces:
             return "<no traces>"
 
-        if index < 0:
-            index = len(self.traces) + index
-        if index >= len(self.traces):
-            raise IndexError("Trace index out of range")
-
         trace = self.traces[index]
 
         common_length = 0
 
-        if index > 1:
+        if len(self.traces) > 1:
             # Find the common prefix between the current stack and the trace stack
             prev_trace = self.traces[index - 1]
             for f1, f2 in zip(trace.stack, prev_trace.stack):
