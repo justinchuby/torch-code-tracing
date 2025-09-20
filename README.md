@@ -3,7 +3,7 @@
 [![PyPI - Version](https://img.shields.io/pypi/v/torch-code-tracing)](https://pypi.org/project/torch-code-tracing)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/torch-code-tracing)](https://pypistats.org/packages/torch-code-tracing)
 
-Code trace your PyTorch model
+Code trace your PyTorch model to understand its exexution and intermediate tensor shapes.
 
 ## Install
 
