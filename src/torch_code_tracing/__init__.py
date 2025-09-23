@@ -98,7 +98,7 @@ class TracingMode(TorchDispatchMode):
         self,
         *args,
         quiet: bool = False,
-        succinct: bool = False,
+        succinct: bool = True,
         color: bool = True,
         **kwargs,
     ):
@@ -137,12 +137,12 @@ class TracingMode(TorchDispatchMode):
 
         return result
 
-    def print(self, *, succinct: bool = False) -> None:
+    def print(self, *, succinct: bool = True) -> None:
         """Print the formatted trace to stdout."""
         for i in range(len(self.traces)):
             self._print_trace(i, succinct=succinct)
 
-    def format(self, *, color: bool = False, succinct: bool = False) -> str:
+    def format(self, *, color: bool = False, succinct: bool = True) -> str:
         """Return the formatted trace as a string."""
         lines = []
         for i in range(len(self.traces)):
