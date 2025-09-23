@@ -231,8 +231,8 @@ class TracingMode(TorchDispatchMode):
         if common_length == len(trace.stack):
             # The call shares the same stack as the previous call
             if color:
-                lines.append(f"{'│ ' * common_length}{_GRAY}# {trace.op_str}{_RESET}")
+                lines.append(f"{'│ ' * common_length}{_GRAY}# {trace.op_str};{_RESET}")
             else:
-                lines.append(f"{'│ ' * common_length}# {trace.op_str}")
+                lines.append(f"{'│ ' * common_length}# {trace.op_str};")
 
         return "\n".join(lines)
