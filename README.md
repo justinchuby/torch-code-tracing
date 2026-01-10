@@ -8,7 +8,7 @@ Code trace your PyTorch model to understand its exexution and intermediate tenso
 ## Install
 
 ```sh
-pip install git+https://github.com/justinchuby/torch-code-tracing.git
+pip install torch-code-tracing
 ```
 
 ## Usage
